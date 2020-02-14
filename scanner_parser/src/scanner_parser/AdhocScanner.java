@@ -57,12 +57,16 @@ public class AdhocScanner {
 					Pattern p = regex.get(expNames[j]);
 					if (p.matcher(characters[i]).matches()) {
 						String[] name = expNames[j].split("_"); 
+						
+						// in the case that the pattern involves more than just one character 
 						if (name.length > 1) {
 							int tokenNum = verifyDependentTokens(characters, i, j);
 							i += tokenNum; 
 							if (tokenNum > 0) { 
 								tokens.add(name[0]);
 							}
+						} else { 
+							tokens.add(characters[i]);
 						}
 						unassigned = false; 
 					} else if (j+1 >= expNames.length) {
@@ -97,18 +101,6 @@ public class AdhocScanner {
 		return NEG_CONSTANT; 
 	}
 	
-	
-	/* will prompt the user for string to scan
-	 * @param prompt	the string to prompt the user for input
-	 */
-	public String getInput(String prompt) {
-		//System.out.print(prompt);
-		String res = input.next();
-		// clears the buffer for the next input
-		input.nextLine();
-		return res;
-	}
-	
 	// scans through the input file and returns the tokens picked up by the scanner
 	public ArrayList<String> scan() {
 		String line = "";
@@ -117,6 +109,7 @@ public class AdhocScanner {
 			line = input.nextLine();
 			line = line.replace("\n", "");
 			Pattern p = regex.get("whitespace");
+			line = p.matcher(line).replaceAll("");
 			
 			// scans through the line char by char
 			scanForTokens(line);
