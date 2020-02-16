@@ -10,16 +10,17 @@ import java.util.regex.Pattern;
 public class AdhocScanner {
 	private Scanner input; 
 	private static final String TEST_FILE_1 = "CalcInput1.txt";
+	private static final String TEST_FILE_2 = "CalcInput2.txt"; 
 	private static final int NEG_CONSTANT = -100; // token dependency length not to exceed this
-	private String[] expNames = {"whitespace", "standardops", "assign_2", "assign_1", "number_d", "point"};
-	private String[] exp = {"[\\s]", "\\(|\\)|\\+|\\-|\\*", ":", "=", "\\d", "\\."};
+	private String[] expNames = {"whitespace", "standardops", "assign_2", "assign_1", "number_d", "point", "div_2", "div_1", "id_ad"};
+	private String[] exp = {"[\\s]", "\\(|\\)|\\+|\\-|\\*", ":", "=", "\\d", "\\.", "/", "\\*|/", "[A-Za-z0-9]"};
 	private HashMap<String,Pattern> regex;
 	private ArrayList<String> tokens;
 	
 	// constructor that sets up the scanner and regexs to be used through the class
 	public AdhocScanner() {
 		// initializes the scanner for reading through the document
-		File file = new File(TEST_FILE_1);
+		File file = new File(TEST_FILE_2);
 		try {
 			this.input = new Scanner(file);
 		} catch (FileNotFoundException e) {
@@ -62,21 +63,37 @@ public class AdhocScanner {
 						if (name.length > 1) {
 							int tokenNum = -1; 
 							// verifies multi-digit numbers or multi-digit characters 
-							tokenNum = (name[1].equals("d")) ? getAllDigits(characters, i) : verifyDependentTokens(characters, i, j, 1, 1, true, "", 0); 
+							if (name[1].equals("d")) { 
+								tokenNum = getAllDigits(characters, i); 
+							} else if (name[1].equals("ad")) {
+								tokenNum = getAlphanumeric(characters, i);
+								// checks for read/write tokens 
+								if (tokenNum == 4 || tokenNum == 5) { 
+									String result = ""; 
+									for (int k = i; k < i + tokenNum; k++) { 
+										result += characters[k];
+									}
+									if (result.equals("read") || result.equals("write")) { 
+										tokens.add(result); 
+										unassigned = false; 
+									}
+								}
+							} else { 
+								verifyDependentTokens(characters, i, j, 1, 1, true, "", 0); 
+							}
 							if (tokenNum > 0) {
 								// if stopped on an operator, evaluate the operator 
 								Pattern ops = regex.get(expNames[1]); // standardops regex
 								if (i+tokenNum < characters.length && ops.matcher(characters[i+tokenNum]).matches()) tokenNum -= 1; 
 								i += tokenNum; 
 								System.out.println("Adding token"); 
-								tokens.add(name[0]);
+								if (unassigned) tokens.add(name[0]);
 							}
 						} else { 
 							tokens.add(characters[i]);
 						}
 						unassigned = false; 
 					} else if (j+1 >= expNames.length) {
-						System.out.println("Problem");
 						throw new Exception("Lexical Error. Please try again.");
 					}
 					j++; 
@@ -98,6 +115,17 @@ public class AdhocScanner {
 		return verifyDependentTokens(characters, charIndex, 4, 1, 0, false, "point", 1); 
 	}
 	
+	/**
+	 * Retrieves all alphanumeric characters in a string using the verifyIndependentTokens method
+	 * @param characters	the array of characters to analyze 
+	 * @param charIndex		the index at which to start checking characters 
+	 * @return				an int saying how many indices to skip 
+	 * @throws Exception	throws excpetion in the case of a lexical error
+	 */
+	private int getAlphanumeric(String[] characters, int charIndex) throws Exception {
+		return verifyDependentTokens(characters, charIndex, 8, 1, 0, false, "", -1);
+	}
+	
 	/** 
 	 * verifies that the necessary characters follow a starting character for a given token 
 	 * @param characters	characters inputed by the user 
@@ -117,12 +145,15 @@ public class AdhocScanner {
 			String[] name = expNames[tokenIndex+1].split("_");
 			Pattern p = regex.get(expNames[tokenIndex+1]);
 			if (p.matcher(characters[charIndex+1]).matches()) {
-				return (Integer.parseInt(name[1]) == 1) ? 1 : verifyDependentTokens(characters, charIndex+charIncrement, tokenIndex+tokenIncrement, 1, 1, true, "", 0) + 1;
+				return (Integer.parseInt(name[1]) == 1) ? 1 : verifyDependentTokens(characters, charIndex+charIncrement, tokenIndex+tokenIncrement, 1, 1, true, "", -1) + 1;
 			}
 		} else if (!knownLimit) {
 			Pattern p = regex.get(expNames[tokenIndex]);
 			// if input stops matching, check for decimal point 
-			if (!p.matcher(characters[charIndex]).matches()) {
+			boolean doesNotMatch = !p.matcher(characters[charIndex]).matches(); 
+			if (allowPatternCheck < 0 && doesNotMatch) { // case: unexpected input, throw an error
+				throw new Exception("Lexical Error."); 
+			} else if (doesNotMatch) {
 				System.out.println("Character stopped matching at " + characters[charIndex]); 
 				Pattern c = regex.get(check); 
 				if (c.matcher(characters[charIndex]).matches() && allowPatternCheck > 0) {
