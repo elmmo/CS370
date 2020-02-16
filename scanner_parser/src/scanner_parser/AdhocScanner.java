@@ -11,8 +11,8 @@ public class AdhocScanner {
 	private Scanner input; 
 	private static final String FILE_NAME = "CalcInput1.txt";
 	private static final int NEG_CONSTANT = -100; // token dependency length not to exceed this
-	private String[] expNames = {"whitespace", "standardops", "assign_2", "assign_1"};
-	private String[] exp = {"[\\s]", "\\(|\\)|\\+|\\-|\\*", ":", "="};
+	private String[] expNames = {"whitespace", "standardops", "assign_2", "assign_1", "number_d", "point"};
+	private String[] exp = {"[\\s]", "\\(|\\)|\\+|\\-|\\*", ":", "=", "\\d", "\\."};
 	private HashMap<String,Pattern> regex;
 	private ArrayList<String> tokens;
 	
@@ -24,7 +24,7 @@ public class AdhocScanner {
 			this.input = new Scanner(file);
 		} catch (FileNotFoundException e) {
 			System.out.println("We're sorry, your input cannot be scanned at this time.");
-			System.out.println(e.getMessage());
+			System.out.println(e.getStackTrace());
 		}
 		
 		// compiles the regex to be used 
@@ -60,9 +60,15 @@ public class AdhocScanner {
 						
 						// in the case that the pattern involves more than just one character 
 						if (name.length > 1) {
-							int tokenNum = verifyDependentTokens(characters, i, j);
-							i += tokenNum; 
-							if (tokenNum > 0) { 
+							int tokenNum = -1; 
+							// verifies multi-digit numbers or multi-digit characters 
+							tokenNum = (name[1].equals("d")) ? getAllDigits(characters, i) : verifyDependentTokens(characters, i, j, 1, 1, true, "", 0); 
+							if (tokenNum > 0) {
+								// if stopped on an operator, evaluate the operator 
+								Pattern ops = regex.get(expNames[1]); // standardops regex
+								if (i+tokenNum < characters.length && ops.matcher(characters[i+tokenNum]).matches()) tokenNum -= 1; 
+								i += tokenNum; 
+								System.out.println("Adding token"); 
 								tokens.add(name[0]);
 							}
 						} else { 
@@ -82,22 +88,54 @@ public class AdhocScanner {
 	}
 	
 	/** 
+	 * Retrieves all the digits in a number using the verifyIndependentTokens method 
+	 * @param characters	the array of characters to analyze 
+	 * @param charIndex		the index at which to start checking characters
+	 * @return				an int saying how many indices to skip 
+	 * @throws Exception	throws exception in the case of a lexical error 
+	 */
+	private int getAllDigits(String[] characters, int charIndex) throws Exception { 
+		return verifyDependentTokens(characters, charIndex, 4, 1, 0, false, "point", 1); 
+	}
+	
+	/** 
 	 * verifies that the necessary characters follow a starting character for a given token 
 	 * @param characters	characters inputed by the user 
 	 * @param charIndex		the index to start searching from in the characters
 	 * @param tokenIndex	the index to start searching from in the tokens 
+	 * @param charIncrement		how much to increment the character increment by 
+	 * @param tokenIncrement 	how much to increment the token index by 
+	 * @param knownLimit	if the number of following characters to expect is known 
+	 * @param check			the name of the pattern that is allowed in the sequence 
+	 * @param allowPatternCheck	the number of times the pattern check is allowed 
 	 * @return				an int indicating how many tokens match the pattern 
 	 * @throws Exception	throws an error in the case that there are no more characters to match 
 	 */
-	private int verifyDependentTokens(String[] characters, int charIndex, int tokenIndex) throws Exception { 
-		if (charIndex + 1 < characters.length) { 
+	private int verifyDependentTokens(String[] characters, int charIndex, int tokenIndex, int charIncrement, int tokenIncrement, boolean knownLimit, String check, int allowPatternCheck) throws Exception { 
+		// if there's a specific number of following characters to check for 
+		if (knownLimit && charIndex + 1 < characters.length) { 
 			String[] name = expNames[tokenIndex+1].split("_");
 			Pattern p = regex.get(expNames[tokenIndex+1]);
 			if (p.matcher(characters[charIndex+1]).matches()) {
-				return (Integer.parseInt(name[1]) == 1) ? 1 : verifyDependentTokens(characters, charIndex+1, tokenIndex+1) + 1;
+				return (Integer.parseInt(name[1]) == 1) ? 1 : verifyDependentTokens(characters, charIndex+charIncrement, tokenIndex+tokenIncrement, 1, 1, true, "", 0) + 1;
 			}
+		} else if (!knownLimit) {
+			Pattern p = regex.get(expNames[tokenIndex]);
+			// if input stops matching, check for decimal point 
+			if (!p.matcher(characters[charIndex]).matches()) {
+				System.out.println("Character stopped matching at " + characters[charIndex]); 
+				Pattern c = regex.get(check); 
+				if (c.matcher(characters[charIndex]).matches() && allowPatternCheck > 0) {
+					allowPatternCheck--; 
+					return verifyDependentTokens(characters, charIndex+charIncrement, tokenIndex+tokenIncrement, 1, 0, false, check, allowPatternCheck); 
+				} else { 
+					return 0; 
+				}
+			}
+			// if numbers keep matching or end isn't next, continue iterating 
+			return (p.matcher(characters[charIndex]).matches() && charIndex != characters.length-1) ? verifyDependentTokens(characters, charIndex+charIncrement, tokenIndex+tokenIncrement, 1, 0, false, "point", allowPatternCheck)+1 : 1;
+		} 
 		
-		}
 		return NEG_CONSTANT; 
 	}
 	
@@ -110,6 +148,7 @@ public class AdhocScanner {
 			line = line.replace("\n", "");
 			Pattern p = regex.get("whitespace");
 			line = p.matcher(line).replaceAll("");
+			System.out.println(line); 
 			
 			// scans through the line char by char
 			scanForTokens(line);
