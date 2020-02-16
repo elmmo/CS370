@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
 
 public class AdhocScanner {
 	private Scanner input; 
-	private static final String FILE_NAME = "CalcInput1.txt";
+	private static final String TEST_FILE_1 = "CalcInput1.txt";
 	private static final int NEG_CONSTANT = -100; // token dependency length not to exceed this
 	private String[] expNames = {"whitespace", "standardops", "assign_2", "assign_1", "number_d", "point"};
 	private String[] exp = {"[\\s]", "\\(|\\)|\\+|\\-|\\*", ":", "=", "\\d", "\\."};
@@ -19,7 +19,7 @@ public class AdhocScanner {
 	// constructor that sets up the scanner and regexs to be used through the class
 	public AdhocScanner() {
 		// initializes the scanner for reading through the document
-		File file = new File(FILE_NAME);
+		File file = new File(TEST_FILE_1);
 		try {
 			this.input = new Scanner(file);
 		} catch (FileNotFoundException e) {
