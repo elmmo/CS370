@@ -11,16 +11,18 @@ public class AdhocScanner {
 	private Scanner input; 
 	private static final String TEST_FILE_1 = "CalcInput1.txt";
 	private static final String TEST_FILE_2 = "CalcInput2.txt"; 
+	private static final String TEST_FILE_3 = "CalcInput3.txt"; 
+	private static final String TEST_FILE_4 = "CalcInput4.txt"; 
 	private static final int NEG_CONSTANT = -100; // token dependency length not to exceed this
 	private String[] expNames = {"whitespace", "standardops", "assign_2", "assign_1", "number_d", "point", "div_2", "div_1", "id_ad"};
-	private String[] exp = {"[\\s]", "\\(|\\)|\\+|\\-|\\*", ":", "=", "\\d", "\\.", "/", "\\*|/", "[A-Za-z0-9]"};
+	private String[] exp = {"[\\s]", "\\(|\\)|\\+|\\-|\\*", ":", "=", "\\d", "\\.", "/", "\\*|\\/", "[A-Za-z0-9]"};
 	private HashMap<String,Pattern> regex;
 	private ArrayList<String> tokens;
 	
 	// constructor that sets up the scanner and regexs to be used through the class
 	public AdhocScanner() {
 		// initializes the scanner for reading through the document
-		File file = new File(TEST_FILE_2);
+		File file = new File(TEST_FILE_4);
 		try {
 			this.input = new Scanner(file);
 		} catch (FileNotFoundException e) {
@@ -44,7 +46,8 @@ public class AdhocScanner {
 		}
 	}
 	
-	/* called by the scan function to go through character by character and find tokens
+	/** 
+	 * called by the scan function to go through character by character and find tokens
 	 * @param	line	the string to search for tokens
 	 */
 	private void scanForTokens(String line) {
@@ -52,6 +55,7 @@ public class AdhocScanner {
 		try {
 			for (int i = 0; i < characters.length; i++) {
 				boolean unassigned = true; 
+				boolean operatorReserved = false; 
 				int j = 1; 
 				
 				while (j < expNames.length && unassigned) {
@@ -78,18 +82,29 @@ public class AdhocScanner {
 										unassigned = false; 
 									}
 								}
+							} else if (characters[i].equals("/")) {
+								 tokenNum = getComment(characters, i); 
+								 Pattern ops = regex.get(expNames[1]); 
+								 if (i+tokenNum < characters.length && ops.matcher(characters[i+tokenNum]).matches()) {
+									 operatorReserved = true; 
+								 }
 							} else { 
+								System.out.println("Else case printed"); 
 								verifyDependentTokens(characters, i, j, 1, 1, true, "", 0); 
 							}
 							if (tokenNum > 0) {
-								// if stopped on an operator, evaluate the operator 
-								Pattern ops = regex.get(expNames[1]); // standardops regex
-								if (i+tokenNum < characters.length && ops.matcher(characters[i+tokenNum]).matches()) tokenNum -= 1; 
+								System.out.println("eval"); 
+								// if stopped on an operator, evaluate the operator unless the operator is part of a reserved keyword
+								if (!operatorReserved) { 
+									Pattern ops = regex.get(expNames[1]); // standardops regex
+									if (i+tokenNum < characters.length && ops.matcher(characters[i+tokenNum]).matches()) tokenNum -= 1;
+								} 
 								i += tokenNum; 
 								System.out.println("Adding token"); 
 								if (unassigned) tokens.add(name[0]);
 							}
 						} else { 
+							// operator case 
 							tokens.add(characters[i]);
 						}
 						unassigned = false; 
@@ -102,6 +117,17 @@ public class AdhocScanner {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+	
+	private int getComment(String[] characters, int charIndex) throws Exception { 
+		// check if satisfies the beginning of a // comment 
+		int tokenNum = verifyDependentTokens(characters, charIndex, 6, 1, 1, true, "", -1); 
+		if (tokenNum > 0) { 
+			charIndex += tokenNum; 
+		}
+		
+		System.out.println("tokenNum = " + tokenNum); 
+		return tokenNum; 
 	}
 	
 	/** 
@@ -120,7 +146,7 @@ public class AdhocScanner {
 	 * @param characters	the array of characters to analyze 
 	 * @param charIndex		the index at which to start checking characters 
 	 * @return				an int saying how many indices to skip 
-	 * @throws Exception	throws excpetion in the case of a lexical error
+	 * @throws Exception	throws exception in the case of a lexical error
 	 */
 	private int getAlphanumeric(String[] characters, int charIndex) throws Exception {
 		return verifyDependentTokens(characters, charIndex, 8, 1, 0, false, "", -1);
@@ -163,7 +189,7 @@ public class AdhocScanner {
 					return 0; 
 				}
 			}
-			// if numbers keep matching or end isn't next, continue iterating 
+			// if input keep matching or end isn't next, continue iterating 
 			return (p.matcher(characters[charIndex]).matches() && charIndex != characters.length-1) ? verifyDependentTokens(characters, charIndex+charIncrement, tokenIndex+tokenIncrement, 1, 0, false, "point", allowPatternCheck)+1 : 1;
 		} 
 		
