@@ -14,15 +14,15 @@ public class AdhocScanner {
 	private static final String TEST_FILE_3 = "CalcInput3.txt"; 
 	private static final String TEST_FILE_4 = "CalcInput4.txt"; 
 	private static final int NEG_CONSTANT = -100; // token dependency length not to exceed this
-	private String[] expNames = {"whitespace", "standardops", "assign_2", "assign_1", "number_d", "point", "div_2", "div_1", "id_ad"};
-	private String[] exp = {"[\\s]", "\\(|\\)|\\+|\\-|\\*", ":", "=", "\\d", "\\.", "/", "\\*|\\/", "[A-Za-z0-9]"};
+	private String[] expNames = {"whitespace", "standardops", "assign_2", "assign_1", "number_d", "point", "div_2", "div_1", "id_ad", "comment_2", "comment_1"};
+	private String[] exp = {"[\\s]", "\\(|\\)|\\+|\\-|\\*", ":", "=", "\\d", "\\.", "/", "\\*|\\/", "[A-Za-z0-9]", "\\*", "/"};
 	private HashMap<String,Pattern> regex;
 	private ArrayList<String> tokens;
 	
 	// constructor that sets up the scanner and regexs to be used through the class
 	public AdhocScanner() {
 		// initializes the scanner for reading through the document
-		File file = new File(TEST_FILE_4);
+		File file = new File(TEST_FILE_2);
 		try {
 			this.input = new Scanner(file);
 		} catch (FileNotFoundException e) {
@@ -83,24 +83,42 @@ public class AdhocScanner {
 									}
 								}
 							} else if (characters[i].equals("/")) {
-								 tokenNum = getComment(characters, i); 
-								 Pattern ops = regex.get(expNames[1]); 
-								 if (i+tokenNum < characters.length && ops.matcher(characters[i+tokenNum]).matches()) {
-									 operatorReserved = true; 
+								int dummyIterator = i; 
+								// if match start of comment 
+								 tokenNum = getCommentBounds(characters, dummyIterator, true); 
+								 dummyIterator += tokenNum; 
+								 if (tokenNum > 0) { 
+									 Pattern ops = regex.get(expNames[1]); 
+									 // if stopped on an operator, set keyword reservation to true and record operator
+									 String endCondition = "";
+									 if (dummyIterator < characters.length && ops.matcher(characters[dummyIterator]).matches()) {
+										 operatorReserved = true; 
+										 endCondition = (characters[dummyIterator].equals("*")) ? "*" : "";
+									 }
+									 dummyIterator++; // needs to be incremented manually since using a toy iteration rather than a loop iteration
+									 tokenNum += getAlphanumeric(characters, dummyIterator); 
+									 dummyIterator += tokenNum; 
+									 if (endCondition.equals("*")) { 
+										 tokenNum += getCommentBounds(characters, dummyIterator, false); 
+										 dummyIterator += tokenNum; 
+									 }
+								 } else { 
+									 // if not match start of comment 
+									 tokens.add(name[0]);
+									 unassigned = false; // set unassigned to false bc tokening handled here  
 								 }
-							} else { 
-								System.out.println("Else case printed"); 
+								 unassigned = false; 
+							} else {  
 								verifyDependentTokens(characters, i, j, 1, 1, true, "", 0); 
 							}
 							if (tokenNum > 0) {
-								System.out.println("eval"); 
 								// if stopped on an operator, evaluate the operator unless the operator is part of a reserved keyword
 								if (!operatorReserved) { 
 									Pattern ops = regex.get(expNames[1]); // standardops regex
 									if (i+tokenNum < characters.length && ops.matcher(characters[i+tokenNum]).matches()) tokenNum -= 1;
 								} 
 								i += tokenNum; 
-								System.out.println("Adding token"); 
+								System.out.println("Adding token");  // kept for any future debugging / building
 								if (unassigned) tokens.add(name[0]);
 							}
 						} else { 
@@ -108,8 +126,6 @@ public class AdhocScanner {
 							tokens.add(characters[i]);
 						}
 						unassigned = false; 
-					} else if (j+1 >= expNames.length) {
-						throw new Exception("Lexical Error. Please try again.");
 					}
 					j++; 
 				}
@@ -119,14 +135,29 @@ public class AdhocScanner {
 		}
 	}
 	
-	private int getComment(String[] characters, int charIndex) throws Exception { 
-		// check if satisfies the beginning of a // comment 
-		int tokenNum = verifyDependentTokens(characters, charIndex, 6, 1, 1, true, "", -1); 
-		if (tokenNum > 0) { 
-			charIndex += tokenNum; 
+	/** 
+	 * recognizes comments and ignores them in input 
+	 * @param characters	the array of string characters to analyze 
+	 * @param charIndex		the index to start scanning from 
+	 * @param open			true for opening bounds, false for closing bounds 
+	 * @return				an int describing how many characters have been scanned 
+	 * @throws Exception	if unrecognized input is entered 
+	 */
+	private int getCommentBounds(String[] characters, int charIndex, boolean open) throws Exception { 
+		int tokenNum = 0; 
+		if (open) { 
+			// check if satisfies the beginning of a // comment 
+			tokenNum = verifyDependentTokens(characters, charIndex, 6, 1, 1, true, "", -1); 
+			if (tokenNum > 0) { 
+				charIndex += tokenNum; 
+			}
+		} else { 
+			// check if satisfies the closing of a *} comment 
+			tokenNum = verifyDependentTokens(characters, charIndex, 9, 1, 1, true, "comment_2", 0); 
+			if (tokenNum > 0) { 
+				charIndex += tokenNum; 
+			}
 		}
-		
-		System.out.println("tokenNum = " + tokenNum); 
 		return tokenNum; 
 	}
 	
@@ -149,7 +180,7 @@ public class AdhocScanner {
 	 * @throws Exception	throws exception in the case of a lexical error
 	 */
 	private int getAlphanumeric(String[] characters, int charIndex) throws Exception {
-		return verifyDependentTokens(characters, charIndex, 8, 1, 0, false, "", -1);
+		return verifyDependentTokens(characters, charIndex, 8, 1, 0, false, "comment_2", 0);
 	}
 	
 	/** 
@@ -180,11 +211,12 @@ public class AdhocScanner {
 			if (allowPatternCheck < 0 && doesNotMatch) { // case: unexpected input, throw an error
 				throw new Exception("Lexical Error."); 
 			} else if (doesNotMatch) {
-				System.out.println("Character stopped matching at " + characters[charIndex]); 
 				Pattern c = regex.get(check); 
 				if (c.matcher(characters[charIndex]).matches() && allowPatternCheck > 0) {
 					allowPatternCheck--; 
 					return verifyDependentTokens(characters, charIndex+charIncrement, tokenIndex+tokenIncrement, 1, 0, false, check, allowPatternCheck); 
+				} else if (characters[charIndex].equals("/") || characters[charIndex].equals("*")) {
+					return -1; // go back one and re-evaluate / and * in context 
 				} else { 
 					return 0; 
 				}
@@ -205,7 +237,7 @@ public class AdhocScanner {
 			line = line.replace("\n", "");
 			Pattern p = regex.get("whitespace");
 			line = p.matcher(line).replaceAll("");
-			System.out.println(line); 
+			System.out.println(line); // kept for any future building/debugging
 			
 			// scans through the line char by char
 			scanForTokens(line);

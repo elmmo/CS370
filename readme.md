@@ -9,3 +9,8 @@ Notes for testing:
 
 Correct output should look like: \
 ```[assign, +, -, *, -, ), number, +, number, number, +, number, number, number, number, number, (, number, ), +, (, number, ), +, number, *, number]```
+
+* **TEST_FILE_2** is testing for
+    * alphanumeric characters (identifiers)
+    * read and write tokens 
+* **TEST_FILE_3** is testing whether the program will halt upon receiving incorrect input (i.e., the program is supposed to throw an error). 
