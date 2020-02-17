@@ -22,7 +22,7 @@ public class AdhocScanner {
 	// constructor that sets up the scanner and regexs to be used through the class
 	public AdhocScanner() {
 		// initializes the scanner for reading through the document
-		File file = new File(TEST_FILE_2);
+		File file = new File(TEST_FILE_4);
 		try {
 			this.input = new Scanner(file);
 		} catch (FileNotFoundException e) {
@@ -242,6 +242,7 @@ public class AdhocScanner {
 			// scans through the line char by char
 			scanForTokens(line);
 		}
+		tokens.add("$$"); 
 		System.out.println(tokens);
 		return tokens;
 	}
