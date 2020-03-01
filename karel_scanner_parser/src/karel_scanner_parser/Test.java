@@ -14,8 +14,13 @@ public class Test {
 			
 			// interact with scanner 
 			input = scanner.condenseWhitespace(input); 
-			scanner.scan(input);
-			System.out.println("Tokens: " + scanner.getTokens()); 
+			try { 
+				scanner.scan(input);
+				System.out.println("Tokens: " + scanner.getTokens()); 
+			} catch (Exception e) {
+				e.getMessage(); 
+				e.printStackTrace();
+			}
 			
 			System.out.print("Would you like to scan and parse another input? (y/n) "); 
 			input = console.next().toLowerCase(); 
