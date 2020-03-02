@@ -17,6 +17,7 @@ public class Test {
 			try { 
 				scanner.scan(input, false);
 				System.out.println("Tokens: " + scanner.getTokens()); 
+				System.out.println("Symbol Table: " + scanner.getSymbolTable());
 			} catch (Exception e) {
 				e.getMessage(); 
 				e.printStackTrace();

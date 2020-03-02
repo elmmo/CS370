@@ -21,7 +21,6 @@ public class AdhocParser {
 	}
 	
 	public void program(ArrayList<String> arr) throws Exception { 
-		String token = arr.get(0); 
 		try { 
 			stmtList(arr);
 			match("$$", arr); 

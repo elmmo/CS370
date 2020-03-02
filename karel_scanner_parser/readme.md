@@ -34,5 +34,14 @@ This scanner will generate a dynamic list of the following tokens:
 
 This design decision was made with the goal of ease of use and accuracy of the scanner and parser.
 
-**Design Decisions**  
-* Input must be entered line by line. After entering the first line, you will be asked if you would like to enter more, and any other tokens detected will be added _in addition to_ wahtever tokens were detected before. 
+There is a little bit of ambiguity with the way the grammar is defined, so I wrote the scanner with the lowest possible level of abstraction. **The parser is not written this way**. The parser will start from the highest level of abstraction and work downward. 
+
+**Other Design Decisions**  
+* Input must be entered line by line. After entering the first line, you will be asked if you would like to enter more, and any other tokens detected will be added _in addition to_ whatever tokens were detected before.  
+
+### Parser 
+There is nothing in the parser that would require it to have access to the symbol table, so the parser is not configured to use the symbol table in any way. 
+
+Since the parser and scanner were written separately based on the needs for them (see above), the two are not currently connected. 
+
+

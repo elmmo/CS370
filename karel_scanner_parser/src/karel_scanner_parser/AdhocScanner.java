@@ -32,6 +32,7 @@ public class AdhocScanner {
 		int initial = 0; 
 		int stop = 0; 
 		String lastEntry = ""; 
+		String symbol = ""; 
 		// iterate over entire input string 
 		for (int i = 0; i < input.length(); i++) { 
 			// check against connecting symbols 
@@ -41,23 +42,36 @@ public class AdhocScanner {
 				// case: the current character matches one of the regexs 
 				if (key.matcher(String.valueOf(input.charAt(i))).matches()) { 
 					if (verbose) System.out.println("Matched " + key + " with " + String.valueOf(input.charAt(i))); 
+					// to prevent variables from getting recorded multiple times 
 					if (!lastEntry.equals(entry.getValue())) { 
 						if (lastEntry.equals("var") && entry.getValue().equals("id")) { 
 							tokens.add(entry.getValue()); 
 							tokens.add(":="); 
 							lastEntry = entry.getValue(); 
+							// increment values for iterating over the input 
 							initial++; 
 							stop++; 
+							// add to the symbol to identify variables 
+							symbol += String.valueOf(input.charAt(i)); 
+							if (verbose) System.out.println("Building symbol " + symbol); 
 							if (verbose) System.out.println("ADDED CONNECTOR. Current state of tokens: " + tokens); 
 							break; 
 						} else if (lastEntry.equals("(") && entry.getValue().equals("dir") || entry.getValue().equals("cnt")) { 
-							tokens.add(entry.getValue()); 
+							tokens.add(entry.getValue());
+							if (lastEntry.equals("id") && entry.getValue().equals("cnt")) { 
+								symbolTable.put(symbol, String.valueOf(input.charAt(i))); 
+								symbol = ""; 
+							}
 							lastEntry = entry.getValue(); 
 							initial++; 
 							stop++; 
 							if (verbose) System.out.println("ADDED CONNECTOR. Current state of tokens: " + tokens); 
 							break; 
 						}
+					} else { 
+						// in the case that a symbol is being built 
+						symbol += String.valueOf(input.charAt(i));
+						if (verbose) System.out.println("Building symbol " + symbol); 
 					}
 				}
 			}
@@ -102,6 +116,14 @@ public class AdhocScanner {
 	 */
 	public ArrayList<String> getTokens() { 
 		return this.tokens; 
+	}
+	
+	/** 
+	 * Getter for the list of symbols 
+	 * @return	symbol table 
+	 */
+	public HashMap<String, String> getSymbolTable() { 
+		return this.symbolTable; 
 	}
 	
 	/**
