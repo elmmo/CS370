@@ -15,7 +15,7 @@ public class Test {
 			// interact with scanner 
 			input = scanner.condenseWhitespace(input); 
 			try { 
-				scanner.scan(input);
+				scanner.scan(input, false);
 				System.out.println("Tokens: " + scanner.getTokens()); 
 			} catch (Exception e) {
 				e.getMessage(); 

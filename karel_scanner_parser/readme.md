@@ -13,6 +13,11 @@ _id -> $[a-z]_
 _cnt -> 0 | 1 | 2 | 3 | 4 | 5_  
 _dir -> l | r_  
 
+**Sample Inputs**   
+* ```turn(l) move(4) turn(r) move(3) var hello := 3 move(4) take```
+* ```take turn(r) move(5) drop```
+
+
 **Scanner Token Generation**  
 This scanner will generate a dynamic list of the following tokens:  
 * move 
@@ -30,5 +35,4 @@ This scanner will generate a dynamic list of the following tokens:
 This design decision was made with the goal of ease of use and accuracy of the scanner and parser.
 
 **Design Decisions**  
-* The Scanner is whitespace-sensitive. This decision was made because of the simple, whole-word nature of the grammar
 * Input must be entered on a single line

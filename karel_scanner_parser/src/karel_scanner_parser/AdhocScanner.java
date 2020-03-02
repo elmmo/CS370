@@ -1,108 +1,85 @@
 package karel_scanner_parser;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
 public class AdhocScanner {
 	private Scanner console; 
 	private ArrayList<String> tokens; 
-	private String[] validTokens = {"move", "turn", "take", "drop", "var", "dir"}; 
-	private String[] connectTokens = {"(", ")", ":", "="};
-	private HashMap<String, String> regexMatch = new HashMap<String, String>();
+	private String[] validTokens = {"move", "turn", "take", "drop", "var", ":=", "(", ")"}; 
+	private HashMap<Pattern, String> connectTokens = new HashMap<Pattern, String>();
 	
 	AdhocScanner() { 
 		this.console = new Scanner(System.in); 
 		this.tokens = new ArrayList<String>(); 
 		// compiles the regex for recognizing ids, counts, and directions
-		this.regexMatch.put("1|2|3|4|5", "cnt"); 
-		this.regexMatch.put("l|r", "dir");
-		this.regexMatch.put("[a-z]", "id"); 
-	}
-	
-	private int verifyDependentTokens(String input, boolean regex, boolean str, String p) {
-		System.out.println("verifyDependentTokens called");
-		String[] inputArr = input.split(""); 
-		int result = 0; 
-		if (regex) { 
-			Pattern compare = Pattern.compile(p); 
-			for (int i = 0; i < inputArr.length; i++) {
-				if (compare.matcher(inputArr[i]).matches()) { 
-					result++; 
-				}
-			}
-			if (result > 0) { 
-				System.out.println(regexMatch.get(p) + " has been logged"); 
-				tokens.add(regexMatch.get(p)); 
-			}
-		}
-		System.out.println("Returning the result of " + result + " places."); 
-		return result; 
+		this.connectTokens.put(Pattern.compile("1|2|3|4|5"), "cnt"); 
+		this.connectTokens.put(Pattern.compile("l|r"), "dir");
+		this.connectTokens.put(Pattern.compile("[a-z]"), "id"); 
 	}
 	
 	/** 
-	 * 
-	 * @param input			the String input to search tokens for 
-	 * @param tokenIndex	the index to start searching for matching tokens. -1 if not applicable
-	 * @param searchArr		the array to match corresponding tokens against 
-	 * @param regexMatch 	if the entry can be categorized using a regex
-	 * @return	the number of letters to skip over via the iterator 
+	 * Scans the input string for tokens 
+	 * @param input		the string to search for tokens 
+	 * @param verbose	a debugging option to get the full text output as the program is scanning 
+	 * @throws Exception	if lexical error 
 	 */
-	private int matchTokens(String input, int tokenIndex, String[] searchArr, boolean regexMatch) { 
-		int lenToken = 0; 
-		int iReturn = 0; 
-		if (tokenIndex == -1) {
-			for (int i = 0; i < searchArr.length; i++) {
-				if (input.charAt(0) == searchArr[i].charAt(0)) { 
-					System.out.println("ADDING " + searchArr[i] + " TO THE MIX :D"); 
-					tokens.add(searchArr[i]); 
-					if (searchArr[i].equals(":")) { 
-						return -1 + iReturn + matchTokens(input.substring(i), 3, searchArr, true);
-					} else if (searchArr[i].equals("(")) { 
-						return -1 + iReturn + matchTokens(input.substring(i), -1, searchArr, true);
+	public void scan(String input, boolean verbose) throws Exception { 
+		int initial = 0; 
+		int stop = 0; 
+		String lastEntry = ""; 
+		// iterate over entire input string 
+		for (int i = 0; i < input.length(); i++) { 
+			// check against connecting symbols 
+			for (Map.Entry<Pattern,String> entry : connectTokens.entrySet()) { 
+				if (verbose) System.out.println("Key: " + entry.getKey() + " / Value: " + entry.getValue()); 
+				Pattern key = entry.getKey(); 
+				// case: the current character matches one of the regexs 
+				if (key.matcher(String.valueOf(input.charAt(i))).matches()) { 
+					if (verbose) System.out.println("Matched " + key + " with " + String.valueOf(input.charAt(i))); 
+					if (!lastEntry.equals(entry.getValue())) { 
+						if (lastEntry.equals("var") && entry.getValue().equals("id")) { 
+							tokens.add(entry.getValue()); 
+							tokens.add(":="); 
+							lastEntry = entry.getValue(); 
+							initial++; 
+							stop++; 
+							if (verbose) System.out.println("ADDED CONNECTOR. Current state of tokens: " + tokens); 
+							break; 
+						} else if (lastEntry.equals("(") && entry.getValue().equals("dir") || entry.getValue().equals("cnt")) { 
+							tokens.add(entry.getValue()); 
+							lastEntry = entry.getValue(); 
+							initial++; 
+							stop++; 
+							if (verbose) System.out.println("ADDED CONNECTOR. Current state of tokens: " + tokens); 
+							break; 
+						}
 					}
 				}
 			}
-			
-		} else { 
-			System.out.println("matchTokens called with " + input + " as the input"); 
-			lenToken = searchArr[tokenIndex].length(); 
-			iReturn = 0; 
-			if (input.length() >= lenToken) { 
-				// if the input matches one of the tokens
-				System.out.println("Does " + input.substring(0, lenToken).toUpperCase() + " equal " + searchArr[tokenIndex].toUpperCase() + "?"); 
-				if (input.substring(0, lenToken).equals(searchArr[tokenIndex])) { 
-					tokens.add(searchArr[tokenIndex]); 
-					iReturn += lenToken; 
-				}
-			}	
-		}
-		return (input.length() > lenToken) ? -1 + iReturn + matchTokens(input.substring(lenToken), -1, connectTokens, false) : iReturn - 1;
-	}
-	
-	public void scan(String input) throws Exception { 
-		System.out.println("scan called with the input of " + input.toUpperCase());
-		String[] inputArr = input.split(" "); 
-		for (int i = 0; i < inputArr.length; i++) { 
-			int j = 0; 
-			boolean unassigned = true; 
-			while (unassigned) {
-				if (inputArr[i].charAt(0) == validTokens[j].charAt(0)) { 
-					int result = matchTokens(inputArr[i], j, validTokens, false); 
-					if (result > 0) unassigned = false; 
-				}
-				if (j == validTokens.length-1 && !unassigned) { 
-					System.out.println("j == validTokens.length && unassigned");
-					if (inputArr[i].equals("var") && i+1 < inputArr.length) { 
-						tokens.add("var"); 
-						i += verifyDependentTokens(inputArr[i+1], true, false, "[a-z]"); 
+			// check against all the primary tokens 
+			for (int j = 0; j < validTokens.length; j++) { 
+				if (verbose) System.out.println("Comparing " + input.charAt(i) + " to " + validTokens[j].charAt(0));
+				// check first character against the token 
+				if (input.charAt(i) == validTokens[j].charAt(0)) { 
+					stop += validTokens[j].length(); 
+					if (verbose) System.out.println("Substring " + input.substring(initial, stop)); 
+					// check substring against the token 
+					if (input.substring(initial, stop).equals(validTokens[j])) { 
+						tokens.add(validTokens[j]);
+						lastEntry = validTokens[j]; 
+						i += validTokens[j].length() - 1; // need to subtract one to account for automatic iteration
+						if (verbose) System.out.println("ADDED TOKEN " + validTokens[j].toUpperCase());
+						if (verbose) System.out.println("New substring:" + input.substring(i)); 
+						initial += validTokens[j].length();
+						break; 
 					} else { 
-						throw new Exception("Lexical Error: unrecognized token.");
+						stop -= validTokens[j].length(); 
 					}
 				}
-				j++; 
 			}
 		}
 		
@@ -115,7 +92,7 @@ public class AdhocScanner {
 	 */
 	public String condenseWhitespace(String input) { 
 		Pattern p = Pattern.compile("[\\s]"); 
-		return p.matcher(input).replaceAll(" ");
+		return p.matcher(input).replaceAll("");
 	}
 	
 	/** 
