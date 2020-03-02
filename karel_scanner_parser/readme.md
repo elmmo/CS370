@@ -35,4 +35,4 @@ This scanner will generate a dynamic list of the following tokens:
 This design decision was made with the goal of ease of use and accuracy of the scanner and parser.
 
 **Design Decisions**  
-* Input must be entered on a single line
+* Input must be entered line by line. After entering the first line, you will be asked if you would like to enter more, and any other tokens detected will be added _in addition to_ wahtever tokens were detected before. 
