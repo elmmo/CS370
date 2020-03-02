@@ -11,6 +11,7 @@ public class AdhocScanner {
 	private ArrayList<String> tokens; 
 	private String[] validTokens = {"move", "turn", "take", "drop", "var", ":=", "(", ")"}; 
 	private HashMap<Pattern, String> connectTokens = new HashMap<Pattern, String>();
+	private HashMap<String, String> symbolTable = new HashMap<String, String>(); 
 	
 	AdhocScanner() { 
 		this.console = new Scanner(System.in); 
@@ -82,7 +83,7 @@ public class AdhocScanner {
 				}
 			}
 		}
-		
+		tokens.add("$$");
 	}
 	
 	/** 
