@@ -12,35 +12,41 @@ public class QueueAsHeap<E extends Comparable<E>> {
 			this.array = new ArrayList<E>(); 
 		}
 		
-		private void add(E data) { 
+		private void add(E data, boolean verbose) { 
 			array.add(data); 
-			System.out.println("Before heaping: " + array);
+			if (verbose) { 
+				System.out.println("Before heaping: " + array);
+			}
 			heapify(); 
-			System.out.println("After heaping" + array); 
+			if (verbose) { 
+				System.out.println("After heaping" + array); 
+			}
 		}
 		
 		// maintains max-heapness for the arraylist 
 		private void heapify() { 
 			int size = array.size()-1; 
-			for (int i = size/2; i > 1; i--) { 
-				int k = i; 
-				E v = array.get(k);
+			for (int i = size/2; i >= 0; i--) { 
+				int parentIndex = i; 
+				E parentValue = array.get(parentIndex); 
 				boolean heap = false; 
-				do { 
-					int j = 2*k; 
-					if (j < size) { // there are two children
-						if (array.get(j).compareTo(array.get(j+1)) < 0) { 
-							j++; 
-						}
+				while (!heap && 2*parentIndex <= size) { 
+					int childIndex = 2*parentIndex; 
+					// if right child bigger than left child, switch comparison child 
+					if (childIndex < size) { // there are two children
+						if (array.get(childIndex).compareTo(array.get(childIndex+1)) < 0) childIndex++; 
 					}
-					if (v.compareTo(array.get(j)) >= 0) { 
+					// if parent is bigger than child 
+					if (parentValue.compareTo(array.get(childIndex)) >= 0) { 
 						heap = true; 
 					} else { 
-						array.set(k, array.get(j)); 
-						k = j; 
+						// move child value to parent position 
+						array.set(parentIndex, array.get(childIndex)); 
+						parentIndex = childIndex; 
 					}
-				} while (!heap && 2*k <= size); 
-				array.set(k, v); 
+					// delayed swap: at end, set last child index to parent value 
+					array.set(parentIndex, parentValue);
+				}
 			}
 		}
 	}
@@ -51,6 +57,6 @@ public class QueueAsHeap<E extends Comparable<E>> {
 	}
 	
 	public void push(E data) { 
-		heap.add(data);
+		heap.add(data, false);
 	}
 }
