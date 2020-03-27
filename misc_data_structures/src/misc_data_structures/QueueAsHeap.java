@@ -49,6 +49,14 @@ public class QueueAsHeap<E extends Comparable<E>> {
 				}
 			}
 		}
+		
+		private E remove(int index) { 
+			E result = array.get(index); 
+			array.set(0, array.get(array.size()-1)); 
+			array.remove(array.size()-1);
+			heapify(); 
+			return result; 
+		}
 	}
 	
 	// constructor for the queue 
@@ -59,4 +67,17 @@ public class QueueAsHeap<E extends Comparable<E>> {
 	public void push(E data) { 
 		heap.add(data, false);
 	}
+	
+	public E pop() { 
+		return heap.remove(0); 
+	}
+	
+	public void print() { 
+		System.out.println(heap.array);
+	}
+	
+	public boolean isEmpty() { 
+		return heap.array.isEmpty(); 
+	}
 }
+

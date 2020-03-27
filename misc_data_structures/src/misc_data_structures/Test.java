@@ -29,7 +29,12 @@ public class Test {
 		for (int i = 0; i < queueArr.length; i++) { 
 			queue.push(queueArr[i]);
 		}
-
+		System.out.print("Queue:"); 
+		queue.print(); 
+		for (int i = 0; i < 5; i++) { 
+			System.out.println(queue.pop() + " popped"); 
+			System.out.print("Produces ");
+			if (!queue.isEmpty()) queue.print(); 
+		}
 	}
-
 }
