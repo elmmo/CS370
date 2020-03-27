@@ -1,7 +1,6 @@
 package misc_data_structures;
 
 import java.util.EmptyStackException;
-import java.util.Hashtable;
 
 public class Test {
 
@@ -39,13 +38,12 @@ public class Test {
 		}
 		System.out.println();
 		
-		Hashtable<Integer, String> t = new Hashtable<Integer, String>(); 
-		t.put(5, "Hello"); 
-		
 		System.out.println("TESTING: DICTIONARY AS HASH TABLE");
 		DictAsHashTable<Integer, String> dict = new DictAsHashTable<Integer, String>(); 
 		dict.put(5, "Hello");
+		System.out.println("Key: 5 and Value: 'Hello' inserted into dictionary"); 
 		dict.put(5, "World");
+		System.out.println("Key: 5 and Value: 'World' inserted into dictionary"); 
 		dict.put(90, "Hello World");
 		System.out.println(dict.get(5) + " (second value) printed"); 
 		System.out.println("If there are multiple values, the hash table will store the last added value, as is the case with hashtables built into Java.");
