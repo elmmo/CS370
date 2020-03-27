@@ -1,6 +1,7 @@
 package misc_data_structures;
 
 import java.util.EmptyStackException;
+import java.util.Hashtable;
 
 public class Test {
 
@@ -23,7 +24,7 @@ public class Test {
 		}
 		System.out.println(); 
 		
-		System.out.println("TESTING: DICTIONARY AS HASHTABLE");
+		System.out.println("TESTING: PRIORITY QUEUE AS HEAP");
 		QueueAsHeap<Integer> queue = new QueueAsHeap<Integer>(); 
 		int[] queueArr = {35,33,42,10,14,19,27,44,26,31}; 
 		for (int i = 0; i < queueArr.length; i++) { 
@@ -36,5 +37,20 @@ public class Test {
 			System.out.print("Produces ");
 			if (!queue.isEmpty()) queue.print(); 
 		}
+		System.out.println();
+		
+		Hashtable<Integer, String> t = new Hashtable<Integer, String>(); 
+		t.put(5, "Hello"); 
+		
+		System.out.println("TESTING: DICTIONARY AS HASH TABLE");
+		DictAsHashTable<Integer, String> dict = new DictAsHashTable<Integer, String>(); 
+		dict.put(5, "Hello");
+		dict.put(5, "World");
+		dict.put(90, "Hello World");
+		System.out.println(dict.get(5) + " (second value) printed"); 
+		System.out.println("If there are multiple values, the hash table will store the last added value, as is the case with hashtables built into Java.");
+		System.out.println("Value mapped to key 90 is " + dict.get(90));
+		dict.remove(90); 
+		System.out.println("Value mapped to key 90 post-removal is " + dict.get(90)); 
 	}
 }
