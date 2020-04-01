@@ -1,0 +1,1 @@
+The files in this folder are the same two exercises (Hello World and the 10th value of the Fibonacci sequence) implemented in Perl, SmallTalk, Haskell, Prolog, and R. Since this is a series of toy-sized code snippets, I included the SmallTalk code in .st files directly rather than pushing the SmallTalk image from Iceberg. 
