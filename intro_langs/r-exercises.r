@@ -119,3 +119,75 @@ summary(n[13:15]); # friday
 summary(c(n[1], n[4], n[7], n[10], n[13]);   // first shop
 summary(c(n[2], n[5], n[8], n[11], n[14]);   // second shop
 summary(c(n[3], n[6], n[9], n[12], n[15]);   // third shop
+
+
+
+## CHAPTER 4 ##
+
+### 1. ###
+
+a <- matrix(c(3, -1, 2, 1), nrow=2);
+// creates the matrix
+//
+//  3   2
+//  -1  1
+//
+
+b <- matrix(c(1, 0, 4, 1, 0, -1), nrow=2);
+// creates the matrix
+//
+//  1   4   0
+//  0   1   -1
+//
+
+2 * a;
+// multiples every member of a by 2:
+//  6   4
+//  -2  2
+
+a * a;
+// multiples every member of a by itself:
+//  9   4
+//  1   1
+
+a %*% a;
+// does traditional matrix multiplication between two matrices of a:
+//  7   8
+//  -4  -1
+
+a %*% b;
+// does traditional matrix multiplication between matrices a and b:
+//  3   14  -2
+//  -1  -3  -1
+
+t(b);
+// flips the rows and columns of the given matrix (matrix transposition):
+//  1   0
+//  4   1
+//  0   -1
+
+solve(a);
+// finds the inverses of each of the members of a:
+//  0.2 0.4
+//  0.2 0.6
+
+
+
+### 2. ###
+
+a[1,];
+// produces a list of the members of the first row of a: 3 2
+
+a[2,];
+// produces a list of the members of the second row of a: -1 1
+
+a[,2];
+// produces a list of the members of the second column of a: 2 1
+
+b[1,2];
+// the value of the first row and second column of b: 4
+
+b[,2:3];
+// a slice of the original matrix that includes the second and third rows:
+//  4   0
+//  1   -1
