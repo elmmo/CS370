@@ -65,7 +65,7 @@ rep(1:4, rep(3,4));
 # 1 1 1 2 2 2 3 3 3 4 4 4
 # First param: 1 2 3 4
 # Second param: 3 3 3 3
-# Repeats every element the number of times matching its corresponding digit and concatenates those repetitions into a single list 
+# Repeats every element the number of times matching its corresponding digit and concatenates those repetitions into a single list
 
 
 
@@ -79,3 +79,43 @@ rep(c(5,8), 4);
 
 rep(c(5,8), rep(4,2));
 # 5 5 5 5 8 8 8 8
+
+
+
+## CHAPTER 3 ##
+
+### 1. ###
+
+m <- c(5, 9, 2, 3, 4, 6, 7, 0, 8, 12, 2, 9);
+
+m[2];
+// Takes the element at index 2 (1-indexed): 9
+
+m[2:4];
+// Takes the range of values from 2 to 4: 9 2 3
+
+m[c(2,3,6)];
+// List of the values at indices 2, 3, and 6: 9 2 6
+
+m[c(1:5,10:12)];
+// List of the values between indices 1 and 5, 10 and 12: 5 9 2 3 4 12 2 9
+
+m[-(10:12)];
+// List copying m except for the indices between 10 and 12: 5 9 2 3 6 6 7 0 8
+
+
+
+### 2. ###
+/*
+ The data y<-c(33,44,29,16,25,45,33,19,54,22,21,49,11,24,56) contain sales of milk in litres for 5 days in three different shops (the first 3 values are for shops 1,2 and 3 on Monday, etc.) Produce a statistical summary of the sales for each day of the week and also for each shop.
+ */
+
+summary(n[1:3]);   # monday
+summary(n[4:6]);   # tuesday
+summary(n[7:9]);   # wednesday
+summary(n[10:12]); # thursday
+summary(n[13:15]); # friday
+
+summary(c(n[1], n[4], n[7], n[10], n[13]);   // first shop
+summary(c(n[2], n[5], n[8], n[11], n[14]);   // second shop
+summary(c(n[3], n[6], n[9], n[12], n[15]);   // third shop
