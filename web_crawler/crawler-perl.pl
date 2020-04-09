@@ -18,6 +18,7 @@ if (initialize() == True) {
             # get matches
             my $response = followLink($row);
             @foundLinks = getMatchUrls($response);
+            addEmails($response);
             # iterate over matches
             foreach $link (@foundLinks) {
                 # add new links to the url file
@@ -27,7 +28,7 @@ if (initialize() == True) {
             }
         }
         my $position = tell($urls);
-        seek $urls, 0, SEEK_END;
+        seek $urls, -1, SEEK_END;
         # adds new urls to the end of the file
         foreach $newAddition (@links) {
             print $urls $newAddition;
@@ -59,6 +60,18 @@ sub getMatchUrls {
     }
 }
 
+# checks web response against email regex and adds matches to file
+# param 0: list response from webpage
+sub addEmails {
+    my @list = $_[0]->content =~ /mailto\:(.[A-Za-z0-9-_]*@[A-Za-z0-9-_]*\....)/g;     # scans response for matches
+    if (@list) {        # if list has anything in it
+        foreach $newEmail (@list) {
+            print $newEmail;
+            #print $emails $newEmail;
+        }
+    }
+}
+
 # loads the given file in the specified mode
 # param 0: string, file name
 # param 1: string, mode to open the file in
@@ -71,7 +84,9 @@ sub openFile {
 # returns boolean, whether program is ready to run the rest yet or not
 sub initialize {
     $urls = openFile("urls.txt", "+<");         # opened in read-write mode
-    $emails = openFile("emails.txt", ">");      # opened in append mode
+    $emails = openFile("emails.txt", ">>");      # opened in append mode
+    
+    print $emails "hello world 4";
     
     # ensure urls file isn't empty
     if (-s "urls.txt" == 0) {
@@ -79,6 +94,7 @@ sub initialize {
         my $input = <STDIN>;
         if ($input =~ /([A-Za-z0-9.:\/]*)/) {
             print $urls $input . "\n";
+            seek $urls, 0, SEEK_SET;
             return True;
         } else {
             print("Program was unable to recognize your URL. Please try again.");
