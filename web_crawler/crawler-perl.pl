@@ -4,16 +4,19 @@ $ENV{'PERL_LWP_SSL_VERIFY_HOSTNAME'} = 0;
 require HTTP::Request;
 require LWP::UserAgent;
 
+#truncate "urls.txt", 0;
+#truncate "emails.txt", 0;
+
 use constant NUM_LINK_REFRESH => 5;
 
-if (initialize() == True) {
+if (initialize() == 1) {
     # explore all the way through the links in the document as many times as specified
     for (my $i = 0; $i < NUM_LINK_REFRESH; $i++) {
         my @links = ();
         while (my $row = <$urls>) {
-            my @baseUrl = $row =~ /(http.*\/\/[A-Za-z.0-9\-]*)[\/|\s]/g;
             # cleaning the url input
             chomp $row;
+            my @baseUrl = $row =~ /(http.*\/\/[A-Za-z.0-9\-]*)[\/|\s]/g;
             chomp @baseUrl[0];
             # get matches
             my $response = followLink($row);
@@ -23,7 +26,7 @@ if (initialize() == True) {
             foreach $link (@foundLinks) {
                 # add new links to the url file
                 my $newAddLink = (substr($link, 0, 1) eq "/") ? (@baseUrl[0] . $link) : $link;
-                print $newAddLink . "\n";
+                #print $newAddLink . "\n";
                 push @links, ($newAddLink . "\n");
             }
         }
@@ -37,8 +40,6 @@ if (initialize() == True) {
         
     }
 }
-
-#truncate "urls.txt", 0;
 
 
 # follows links and returns the full response from the webpage
@@ -66,8 +67,8 @@ sub addEmails {
     my @list = $_[0]->content =~ /mailto\:(.[A-Za-z0-9-_]*@[A-Za-z0-9-_]*\....)/g;     # scans response for matches
     if (@list) {        # if list has anything in it
         foreach $newEmail (@list) {
-            print $newEmail;
-            #print $emails $newEmail;
+#            print $newEmail . "\n";
+            print $emails $newEmail;
         }
     }
 }
@@ -76,17 +77,15 @@ sub addEmails {
 # param 0: string, file name
 # param 1: string, mode to open the file in
 sub openFile {
-    open(my $file, $_[1], $_[0]) || die "Couldn't open file " . $_[0];
+    open($file, $_[1], $_[0]) || die "Couldn't open file " . $_[0];
     return $file;
 }
 
 # sets up the program with the tools it needs (e.g., non-empty urls file)
 # returns boolean, whether program is ready to run the rest yet or not
 sub initialize {
-    $urls = openFile("urls.txt", "+<");         # opened in read-write mode
     $emails = openFile("emails.txt", ">>");      # opened in append mode
-    
-    print $emails "hello world 4";
+    $urls = openFile("urls.txt", "+<");         # opened in read-write mode
     
     # ensure urls file isn't empty
     if (-s "urls.txt" == 0) {
@@ -95,11 +94,11 @@ sub initialize {
         if ($input =~ /([A-Za-z0-9.:\/]*)/) {
             print $urls $input . "\n";
             seek $urls, 0, SEEK_SET;
-            return True;
+            return 1;
         } else {
             print("Program was unable to recognize your URL. Please try again.");
-            return False;
         }
     }
+    return 0;
 }
 
