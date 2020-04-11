@@ -4,6 +4,7 @@ $ENV{'PERL_LWP_SSL_VERIFY_HOSTNAME'} = 0;
 require HTTP::Request;
 require LWP::UserAgent;
 
+# in case files need to be cleared 
 #truncate "urls.txt", 0;
 #truncate "emails.txt", 0;
 
@@ -32,7 +33,7 @@ if (initialize() == 1) {
         }
         my $position = tell($urls);
         seek $urls, -1, SEEK_END;
-        # adds new urls to the end of the file
+#         adds new urls to the end of the file
         foreach $newAddition (@links) {
             print $urls $newAddition;
         }
@@ -91,6 +92,7 @@ sub initialize {
     if (-s "urls.txt" == 0) {
         print("Please enter a starting URL for the crawler:");
         my $input = <STDIN>;
+        # if valid url, write to file
         if ($input =~ /([A-Za-z0-9.:\/]*)/) {
             print $urls $input . "\n";
             seek $urls, 0, SEEK_SET;
